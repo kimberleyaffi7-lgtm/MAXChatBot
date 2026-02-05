@@ -5,7 +5,7 @@
   <title>Universal AI Chat Interface</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind CDN -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -14,220 +14,238 @@
   </style>
 </head>
 
-<body class="bg-gray-900 text-gray-100 h-screen flex overflow-hidden">
+<body class="h-screen bg-gray-900 text-gray-100 flex overflow-hidden">
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
-    <div class="p-4 border-b border-gray-700 flex justify-between items-center">
-      <h1 class="font-bold text-lg">AI Chats</h1>
-      <button onclick="newChat()" class="text-sm bg-blue-600 px-2 py-1 rounded">+</button>
-    </div>
-
-    <div id="chatList" class="flex-1 overflow-y-auto p-2 space-y-2"></div>
-
-    <div class="p-3 border-t border-gray-700">
-      <button onclick="openSettings()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded">
-        ⚙ Settings
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main Chat Area -->
-  <main class="flex-1 flex flex-col">
-    <div id="chatHeader" class="p-4 border-b border-gray-700 text-sm text-gray-400">
-      New Chat
-    </div>
-
-    <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
-
-    <div class="p-4 border-t border-gray-700 flex gap-2">
-      <textarea id="userInput"
-        class="flex-1 resize-none bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none"
-        rows="2"
-        placeholder="Type your message..."
-      ></textarea>
-      <button onclick="sendMessage()" class="bg-blue-600 px-4 rounded">
-        Send
-      </button>
-    </div>
-  </main>
-
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center">
-    <div class="bg-gray-800 w-full max-w-md rounded p-6 space-y-4">
-      <h2 class="text-lg font-semibold">Settings</h2>
-
-      <div>
-        <label class="text-sm text-gray-400">Blackbox API Key</label>
-        <input id="apiKeyInput" type="password"
-          class="w-full bg-gray-900 border border-gray-700 rounded p-2 mt-1"
-          placeholder="Enter API Key" />
-      </div>
-
-      <div>
-        <label class="text-sm text-gray-400">Model Name</label>
-        <input id="modelInput" type="text"
-          class="w-full bg-gray-900 border border-gray-700 rounded p-2 mt-1"
-          placeholder="e.g. blackboxai/gpt-4" />
-      </div>
-
-      <div id="apiStatus" class="text-sm text-gray-400"></div>
-
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeSettings()" class="px-4 py-2 bg-gray-600 rounded">Cancel</button>
-        <button onclick="verifyAndSave()" class="px-4 py-2 bg-blue-600 rounded">Verify & Save</button>
-      </div>
-    </div>
+<!-- ================= SIDEBAR ================= -->
+<aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+  <div class="p-4 flex justify-between items-center border-b border-gray-700">
+    <h1 class="font-bold">AI Chats</h1>
+    <button onclick="newChat()" class="bg-blue-600 px-2 rounded">+</button>
   </div>
 
-  <!-- Script at END -->
-  <script>
-    /* ------------------ STATE ------------------ */
-    let chats = JSON.parse(localStorage.getItem("chats") || "{}");
-    let currentChatId = localStorage.getItem("currentChat") || null;
-    let apiKey = localStorage.getItem("bb_api_key") || "";
-    let modelName = localStorage.getItem("bb_model") || "";
-    let apiVerified = localStorage.getItem("bb_verified") === "true";
+  <div id="chatList" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
 
-    /* ------------------ INIT ------------------ */
-    document.getElementById("apiKeyInput").value = apiKey;
-    document.getElementById("modelInput").value = modelName;
-    renderChats();
-    if (currentChatId) loadChat(currentChatId);
+  <div class="p-3 border-t border-gray-700">
+    <button onclick="openSettings()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded">
+      ⚙ Settings
+    </button>
+  </div>
+</aside>
 
-    /* ------------------ CHAT ------------------ */
-    function newChat() {
-      const id = "chat_" + Date.now();
-      chats[id] = { title: "New Chat", messages: [] };
-      currentChatId = id;
-      saveState();
-      renderChats();
-      loadChat(id);
-    }
+<!-- ================= MAIN ================= -->
+<main class="flex-1 flex flex-col">
+  <div id="chatHeader" class="p-4 border-b border-gray-700 text-gray-400 text-sm">
+    New Chat
+  </div>
 
-    function renderChats() {
-      const list = document.getElementById("chatList");
-      list.innerHTML = "";
-      Object.keys(chats).reverse().forEach(id => {
-        const btn = document.createElement("button");
-        btn.className = "w-full text-left px-3 py-2 rounded hover:bg-gray-700";
-        btn.textContent = chats[id].title;
-        btn.onclick = () => loadChat(id);
-        list.appendChild(btn);
-      });
-    }
+  <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
 
-    function loadChat(id) {
-      currentChatId = id;
-      document.getElementById("chatHeader").textContent = chats[id].title;
-      const area = document.getElementById("chatArea");
-      area.innerHTML = "";
-      chats[id].messages.forEach(m => appendMessage(m.role, m.content));
-      saveState();
-    }
+  <div class="p-4 border-t border-gray-700 flex gap-2">
+    <textarea id="userInput"
+      class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 resize-none focus:outline-none"
+      rows="2"
+      placeholder="Type a message..."
+    ></textarea>
+    <button onclick="sendMessage()" class="bg-blue-600 px-4 rounded">
+      Send
+    </button>
+  </div>
+</main>
 
-    function appendMessage(role, text) {
-      const div = document.createElement("div");
-      div.className = role === "user"
-        ? "text-right"
-        : "text-left text-blue-400";
-      div.innerHTML = `<div class="inline-block bg-gray-800 px-3 py-2 rounded max-w-xl">${text}</div>`;
-      document.getElementById("chatArea").appendChild(div);
-      document.getElementById("chatArea").scrollTop = 999999;
-    }
+<!-- ================= SETTINGS MODAL ================= -->
+<div id="settingsModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center">
+  <div class="bg-gray-800 w-full max-w-md rounded p-6 space-y-4">
+    <h2 class="text-lg font-semibold">Settings</h2>
 
-    async function sendMessage() {
-      if (!apiVerified) {
-        alert("Please verify API key in Settings first.");
-        return;
-      }
-      const input = document.getElementById("userInput");
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = "";
+    <div>
+      <label class="text-sm text-gray-400">Blackbox API Key</label>
+      <input id="apiKeyInput" type="password"
+        class="w-full bg-gray-900 border border-gray-700 rounded p-2 mt-1"
+        placeholder="Paste API Key" />
+    </div>
 
-      appendMessage("user", text);
-      chats[currentChatId].messages.push({ role: "user", content: text });
+    <div>
+      <label class="text-sm text-gray-400">Model Name</label>
+      <input id="modelInput" type="text"
+        class="w-full bg-gray-900 border border-gray-700 rounded p-2 mt-1"
+        placeholder="blackboxai / gpt-4 / claude-3-opus" />
+    </div>
 
-      appendMessage("assistant", "Thinking...");
+    <div id="apiStatus" class="text-sm"></div>
 
-      try {
-        const res = await fetch("https://api.blackbox.ai/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + apiKey
-          },
-          body: JSON.stringify({
-            model: modelName,
-            messages: chats[currentChatId].messages
-          })
-        });
+    <div class="flex justify-end gap-2 pt-2">
+      <button onclick="closeSettings()" class="bg-gray-600 px-4 py-2 rounded">
+        Cancel
+      </button>
+      <button onclick="verifyAndSave()" class="bg-blue-600 px-4 py-2 rounded">
+        Verify & Save
+      </button>
+    </div>
+  </div>
+</div>
 
-        const data = await res.json();
-        document.getElementById("chatArea").lastChild.remove();
-        appendMessage("assistant", data.response || "No response");
-        chats[currentChatId].messages.push({
-          role: "assistant",
-          content: data.response || ""
-        });
-        saveState();
-      } catch (e) {
-        document.getElementById("chatArea").lastChild.remove();
-        appendMessage("assistant", "Error connecting to API");
-      }
-    }
+<!-- ================= SCRIPT (END OF BODY) ================= -->
+<script>
+/* ================= STATE ================= */
+let chats = JSON.parse(localStorage.getItem("chats") || "{}");
+let currentChatId = localStorage.getItem("currentChat") || null;
 
-    /* ------------------ SETTINGS ------------------ */
-    function openSettings() {
-      document.getElementById("settingsModal").classList.remove("hidden");
-      document.getElementById("settingsModal").classList.add("flex");
-    }
+let apiKey = localStorage.getItem("bb_api_key") || "";
+let modelName = localStorage.getItem("bb_model") || "";
+let apiVerified = localStorage.getItem("bb_verified") === "true";
 
-    function closeSettings() {
-      document.getElementById("settingsModal").classList.add("hidden");
-    }
+/* ================= INIT ================= */
+document.getElementById("apiKeyInput").value = apiKey;
+document.getElementById("modelInput").value = modelName;
 
-    async function verifyAndSave() {
-      const key = document.getElementById("apiKeyInput").value.trim();
-      const model = document.getElementById("modelInput").value.trim();
-      const status = document.getElementById("apiStatus");
+renderChats();
+if (currentChatId) loadChat(currentChatId);
 
-      if (!key || !model) {
-        status.textContent = "API Key and Model are required.";
-        return;
-      }
+/* ================= CHAT LOGIC ================= */
+function newChat() {
+  const id = "chat_" + Date.now();
+  chats[id] = { title: "New Chat", messages: [] };
+  currentChatId = id;
+  saveState();
+  renderChats();
+  loadChat(id);
+}
 
-      status.textContent = "Verifying API key...";
+function renderChats() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  Object.keys(chats).reverse().forEach(id => {
+    const btn = document.createElement("button");
+    btn.className = "w-full text-left px-3 py-2 rounded hover:bg-gray-700";
+    btn.textContent = chats[id].title;
+    btn.onclick = () => loadChat(id);
+    list.appendChild(btn);
+  });
+}
 
-      try {
-        const res = await fetch("https://api.blackbox.ai/api/models", {
-          headers: { "Authorization": "Bearer " + key }
-        });
+function loadChat(id) {
+  currentChatId = id;
+  document.getElementById("chatHeader").textContent = chats[id].title;
+  const area = document.getElementById("chatArea");
+  area.innerHTML = "";
+  chats[id].messages.forEach(m => addMessage(m.role, m.content));
+  saveState();
+}
 
-        if (!res.ok) throw new Error();
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.className = role === "user" ? "text-right" : "text-left text-blue-400";
+  div.innerHTML = `
+    <div class="inline-block bg-gray-800 px-3 py-2 rounded max-w-xl">
+      ${text}
+    </div>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
 
-        apiKey = key;
-        modelName = model;
-        apiVerified = true;
+async function sendMessage() {
+  if (!apiVerified) {
+    alert("Please verify your API key in Settings first.");
+    return;
+  }
 
-        localStorage.setItem("bb_api_key", apiKey);
-        localStorage.setItem("bb_model", modelName);
-        localStorage.setItem("bb_verified", "true");
+  const input = userInput.value.trim();
+  if (!input) return;
+  userInput.value = "";
 
-        status.textContent = "✅ API Key Verified";
-        setTimeout(closeSettings, 800);
-      } catch {
-        status.textContent = "❌ Invalid API Key";
-      }
-    }
+  addMessage("user", input);
+  chats[currentChatId].messages.push({ role: "user", content: input });
 
-    /* ------------------ STORAGE ------------------ */
-    function saveState() {
-      localStorage.setItem("chats", JSON.stringify(chats));
-      localStorage.setItem("currentChat", currentChatId);
-    }
-  </script>
+  addMessage("assistant", "Thinking...");
+
+  try {
+    const res = await fetch("https://api.blackbox.ai/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: chats[currentChatId].messages
+      })
+    });
+
+    const data = await res.json();
+    chatArea.lastChild.remove();
+
+    const reply = data.response || "No response";
+    addMessage("assistant", reply);
+    chats[currentChatId].messages.push({ role: "assistant", content: reply });
+    saveState();
+
+  } catch {
+    chatArea.lastChild.remove();
+    addMessage("assistant", "❌ API Error");
+  }
+}
+
+/* ================= SETTINGS ================= */
+function openSettings() {
+  settingsModal.classList.remove("hidden");
+  settingsModal.classList.add("flex");
+}
+
+function closeSettings() {
+  settingsModal.classList.add("hidden");
+}
+
+async function verifyAndSave() {
+  const key = apiKeyInput.value.trim();
+  const model = modelInput.value.trim();
+  apiStatus.textContent = "Verifying API key...";
+
+  if (!key || !model) {
+    apiStatus.textContent = "API key and model required.";
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.blackbox.ai/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + key
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: "user", content: "ping" }],
+        max_tokens: 5
+      })
+    });
+
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (!data.response) throw new Error();
+
+    apiKey = key;
+    modelName = model;
+    apiVerified = true;
+
+    localStorage.setItem("bb_api_key", key);
+    localStorage.setItem("bb_model", model);
+    localStorage.setItem("bb_verified", "true");
+
+    apiStatus.textContent = "✅ API Verified";
+    setTimeout(closeSettings, 700);
+
+  } catch {
+    apiStatus.textContent = "❌ Invalid API key or model";
+    localStorage.setItem("bb_verified", "false");
+  }
+}
+
+/* ================= STORAGE ================= */
+function saveState() {
+  localStorage.setItem("chats", JSON.stringify(chats));
+  localStorage.setItem("currentChat", currentChatId);
+}
+</script>
 
 </body>
 </html>
