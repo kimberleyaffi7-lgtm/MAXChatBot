@@ -1,236 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackbox AI Interface</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0b0b; color: #ececec; }
-        .chat-gradient { background: linear-gradient(180deg, rgba(11,11,11,0) 0%, rgba(11,11,11,1) 85%); }
-        .markdown-body pre { background: #161616; padding: 1.25rem; border-radius: 12px; border: 1px solid #2a2a2a; margin: 1rem 0; overflow-x: auto; }
-        .markdown-body code { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #7dd3fc; }
-        .sidebar-active { background-color: #1f1f1f; border-left: 4px solid #3b82f6; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Universal AI Chat Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+  </style>
 </head>
-<body class="h-screen flex overflow-hidden">
 
-    <aside id="sidebar" class="w-72 flex-shrink-0 bg-[#121212] flex flex-col border-r border-[#222] transition-all duration-300">
-        <div class="p-5">
-            <button onclick="createNewChat()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition font-semibold shadow-lg shadow-blue-900/20">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i> New Session
-            </button>
-        </div>
-        <div id="history-list" class="flex-1 overflow-y-auto px-3 space-y-1"></div>
-        <div class="p-4 border-t border-[#222]">
-            <button onclick="toggleModal('settings-modal')" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-[#1f1f1f] rounded-lg transition text-sm text-gray-400">
-                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> API Config
-            </button>
-        </div>
-    </aside>
+<body class="bg-gray-900 text-gray-100 h-screen flex overflow-hidden">
 
-    <main class="flex-1 flex flex-col relative min-w-0">
-        <header class="h-16 flex items-center justify-between px-6 border-b border-[#222] bg-[#0b0b0b]/80 backdrop-blur-md z-10">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/5 rounded-lg"><i data-lucide="menu"></i></button>
-                <div class="flex flex-col">
-                    <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Blackbox AI</span>
-                    <span id="current-model-label" class="text-[10px] text-gray-500 font-mono">Loading...</span>
-                </div>
-            </div>
-        </header>
-
-        <div id="viewport" class="flex-1 overflow-y-auto pb-40 pt-10">
-            <div id="welcome" class="max-w-2xl mx-auto text-center py-20 space-y-6">
-                <h1 class="text-5xl font-extrabold tracking-tight text-white">How can I help?</h1>
-                <p class="text-gray-500 text-lg">Harnessing Blackbox AI for code and chat.</p>
-                <div class="flex flex-wrap justify-center gap-3">
-                    <button onclick="quickPrompt('Write a Python function to sort a list')" class="px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-full text-sm hover:border-blue-500 transition">Python Sorting</button>
-                    <button onclick="quickPrompt('Explain the concept of WebSockets')" class="px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-full text-sm hover:border-blue-500 transition">WebSockets</button>
-                </div>
-            </div>
-            <div id="chat-container" class="max-w-3xl mx-auto px-4 space-y-12"></div>
-        </div>
-
-        <div class="absolute bottom-0 w-full chat-gradient pb-8 pt-10">
-            <div class="max-w-3xl mx-auto px-4 relative">
-                <div class="relative bg-[#1a1a1a] border border-[#333] rounded-2xl p-2 shadow-2xl focus-within:border-blue-500/50 transition-all">
-                    <textarea id="user-input" rows="1" placeholder="Ask anything..." class="w-full bg-transparent border-none py-3 px-4 focus:ring-0 resize-none text-base outline-none pr-16"></textarea>
-                    <button id="send-btn" class="absolute right-3 bottom-3 p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all disabled:opacity-20 shadow-lg shadow-blue-600/20">
-                        <i data-lucide="send-horizontal" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                <p class="text-[10px] text-center text-gray-600 mt-3 uppercase tracking-widest">Powered by Blackbox AI Engine</p>
-            </div>
-        </div>
-    </main>
-
-    <div id="settings-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-[#161616] w-full max-w-md p-8 rounded-3xl border border-[#333]">
-            <h2 class="text-xl font-bold mb-6">Configuration</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase">Preferred Model</label>
-                    <select id="model-select" class="w-full bg-[#0b0b0b] border border-[#333] rounded-xl p-3 outline-none focus:border-blue-500 text-sm">
-                        <option value="blackbox">Blackbox Default</option>
-                        <option value="gpt-4o">GPT-4o</option>
-                        <option value="gemini-pro">Gemini Pro</option>
-                        <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                    </select>
-                </div>
-                <p class="text-xs text-gray-500 italic">Note: Blackbox API typically allows direct browser requests. No API key is required for basic usage in this implementation.</p>
-            </div>
-            <button onclick="saveSettings()" class="w-full mt-8 py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition">Save & Apply</button>
-            <button onclick="toggleModal('settings-modal')" class="w-full mt-2 py-2 text-gray-500 text-sm">Cancel</button>
-        </div>
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+    <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+      <h1 class="font-bold text-lg">AI Chats</h1>
+      <button onclick="newChat()" class="text-sm bg-blue-600 px-2 py-1 rounded">+</button>
     </div>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <div id="chatList" class="flex-1 overflow-y-auto p-2 space-y-2"></div>
 
-    <script>
-        let chats = JSON.parse(localStorage.getItem('bb_chats') || '[]');
-        let currentChatId = null;
-        let config = JSON.parse(localStorage.getItem('bb_config') || '{"model": "blackbox"}');
+    <div class="p-3 border-t border-gray-700">
+      <button onclick="openSettings()" class="w-full bg-gray-700 hover:bg-gray-600 py-2 rounded">
+        ⚙ Settings
+      </button>
+    </div>
+  </aside>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            loadConfig();
-            renderHistory();
-            document.getElementById('send-btn').addEventListener('click', handleSend);
-            document.getElementById('user-input').addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
+  <!-- Main Chat Area -->
+  <main class="flex-1 flex flex-col">
+    <div id="chatHeader" class="p-4 border-b border-gray-700 text-sm text-gray-400">
+      New Chat
+    </div>
+
+    <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+
+    <div class="p-4 border-t border-gray-700 flex gap-2">
+      <textarea id="userInput"
+        class="flex-1 resize-none bg-gray-800 border border-gray-700 rounded p-2 focus:outline-none"
+        rows="2"
+        placeholder="Type your message..."
+      ></textarea>
+      <button onclick="sendMessage()" class="bg-blue-600 px-4 rounded">
+        Send
+      </button>
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center">
+    <div class="bg-gray-800 w-full max-w-md rounded p-6 space-y-4">
+      <h2 class="text-lg font-semibold">Settings</h2>
+
+      <div>
+        <label class="text-sm text-gray-400">Blackbox API Key</label>
+        <input id="apiKeyInput" type="password"
+          class="w-full bg-gray-900 border border-gray-700 rounded p-2 mt-1"
+          placeholder="Enter API Key" />
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-400">Model Name</label>
+        <input id="modelInput" type="text"
+          class="w-full bg-gray-900 border border-gray-700 rounded p-2 mt-1"
+          placeholder="e.g. blackboxai/gpt-4" />
+      </div>
+
+      <div id="apiStatus" class="text-sm text-gray-400"></div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeSettings()" class="px-4 py-2 bg-gray-600 rounded">Cancel</button>
+        <button onclick="verifyAndSave()" class="px-4 py-2 bg-blue-600 rounded">Verify & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script at END -->
+  <script>
+    /* ------------------ STATE ------------------ */
+    let chats = JSON.parse(localStorage.getItem("chats") || "{}");
+    let currentChatId = localStorage.getItem("currentChat") || null;
+    let apiKey = localStorage.getItem("bb_api_key") || "";
+    let modelName = localStorage.getItem("bb_model") || "";
+    let apiVerified = localStorage.getItem("bb_verified") === "true";
+
+    /* ------------------ INIT ------------------ */
+    document.getElementById("apiKeyInput").value = apiKey;
+    document.getElementById("modelInput").value = modelName;
+    renderChats();
+    if (currentChatId) loadChat(currentChatId);
+
+    /* ------------------ CHAT ------------------ */
+    function newChat() {
+      const id = "chat_" + Date.now();
+      chats[id] = { title: "New Chat", messages: [] };
+      currentChatId = id;
+      saveState();
+      renderChats();
+      loadChat(id);
+    }
+
+    function renderChats() {
+      const list = document.getElementById("chatList");
+      list.innerHTML = "";
+      Object.keys(chats).reverse().forEach(id => {
+        const btn = document.createElement("button");
+        btn.className = "w-full text-left px-3 py-2 rounded hover:bg-gray-700";
+        btn.textContent = chats[id].title;
+        btn.onclick = () => loadChat(id);
+        list.appendChild(btn);
+      });
+    }
+
+    function loadChat(id) {
+      currentChatId = id;
+      document.getElementById("chatHeader").textContent = chats[id].title;
+      const area = document.getElementById("chatArea");
+      area.innerHTML = "";
+      chats[id].messages.forEach(m => appendMessage(m.role, m.content));
+      saveState();
+    }
+
+    function appendMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = role === "user"
+        ? "text-right"
+        : "text-left text-blue-400";
+      div.innerHTML = `<div class="inline-block bg-gray-800 px-3 py-2 rounded max-w-xl">${text}</div>`;
+      document.getElementById("chatArea").appendChild(div);
+      document.getElementById("chatArea").scrollTop = 999999;
+    }
+
+    async function sendMessage() {
+      if (!apiVerified) {
+        alert("Please verify API key in Settings first.");
+        return;
+      }
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+
+      appendMessage("user", text);
+      chats[currentChatId].messages.push({ role: "user", content: text });
+
+      appendMessage("assistant", "Thinking...");
+
+      try {
+        const res = await fetch("https://api.blackbox.ai/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + apiKey
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: chats[currentChatId].messages
+          })
         });
 
-        function loadConfig() {
-            document.getElementById('model-select').value = config.model;
-            document.getElementById('current-model-label').innerText = config.model;
-        }
+        const data = await res.json();
+        document.getElementById("chatArea").lastChild.remove();
+        appendMessage("assistant", data.response || "No response");
+        chats[currentChatId].messages.push({
+          role: "assistant",
+          content: data.response || ""
+        });
+        saveState();
+      } catch (e) {
+        document.getElementById("chatArea").lastChild.remove();
+        appendMessage("assistant", "Error connecting to API");
+      }
+    }
 
-        function saveSettings() {
-            config.model = document.getElementById('model-select').value;
-            localStorage.setItem('bb_config', JSON.stringify(config));
-            loadConfig();
-            toggleModal('settings-modal');
-        }
+    /* ------------------ SETTINGS ------------------ */
+    function openSettings() {
+      document.getElementById("settingsModal").classList.remove("hidden");
+      document.getElementById("settingsModal").classList.add("flex");
+    }
 
-        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-ml-72'); }
+    function closeSettings() {
+      document.getElementById("settingsModal").classList.add("hidden");
+    }
 
-        async function handleSend() {
-            const input = document.getElementById('user-input');
-            const btn = document.getElementById('send-btn');
-            const text = input.value.trim();
-            if (!text) return;
+    async function verifyAndSave() {
+      const key = document.getElementById("apiKeyInput").value.trim();
+      const model = document.getElementById("modelInput").value.trim();
+      const status = document.getElementById("apiStatus");
 
-            if (!currentChatId) {
-                currentChatId = Date.now();
-                chats.unshift({ id: currentChatId, title: text.substring(0, 30), messages: [] });
-            }
+      if (!key || !model) {
+        status.textContent = "API Key and Model are required.";
+        return;
+      }
 
-            const chat = chats.find(c => c.id === currentChatId);
-            chat.messages.push({ role: 'user', content: text });
-            
-            input.value = '';
-            input.style.height = 'auto';
-            document.getElementById('welcome').classList.add('hidden');
-            appendUI('user', text);
+      status.textContent = "Verifying API key...";
 
-            const aiId = 'ai-' + Date.now();
-            const aiBody = appendUI('assistant', '<span class="animate-pulse">Thinking...</span>', aiId);
-            btn.disabled = true;
+      try {
+        const res = await fetch("https://api.blackbox.ai/api/models", {
+          headers: { "Authorization": "Bearer " + key }
+        });
 
-            try {
-                // Blackbox API Call
-                const response = await fetch("https://www.blackbox.ai/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: chat.messages,
-                        id: aiId,
-                        previewToken: null,
-                        userId: null,
-                        codeModelMode: true,
-                        agentMode: {},
-                        trendingAgentMode: {},
-                        isAdvancedMode: false,
-                        maxTokens: 1024,
-                        isChromeExt: false,
-                        githubToken: null,
-                        clickedAnswer2: false,
-                        clickedAnswer3: false,
-                        visitFromDelta: false,
-                        mobileClient: false,
-                        model: config.model
-                    })
-                });
+        if (!res.ok) throw new Error();
 
-                const result = await response.text();
-                // Clean up any metadata Blackbox adds to the string
-                const cleanResult = result.replace(/\$@\$.*?\$@\$/g, '').trim();
-                
-                aiBody.innerHTML = marked.parse(cleanResult);
-                aiBody.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-                
-                chat.messages.push({ role: 'assistant', content: cleanResult });
-                localStorage.setItem('bb_chats', JSON.stringify(chats));
-            } catch (err) {
-                aiBody.innerHTML = `<p class="text-red-400">Error: ${err.message}. Check your internet connection.</p>`;
-            } finally {
-                btn.disabled = false;
-                renderHistory();
-                scrollToBottom();
-            }
-        }
+        apiKey = key;
+        modelName = model;
+        apiVerified = true;
 
-        function appendUI(role, content, id) {
-            const container = document.getElementById('chat-container');
-            const div = document.createElement('div');
-            div.className = `flex gap-5 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            div.innerHTML = `
-                <div class="flex flex-col ${role === 'user' ? 'items-end' : 'w-full'}">
-                    <div class="flex items-center gap-2 mb-2 px-1">
-                        <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500">${role}</span>
-                    </div>
-                    <div id="${id || ''}" class="${role === 'user' ? 'bg-blue-600 text-white px-5 py-3 rounded-2xl max-w-[85%] shadow-lg' : 'w-full text-gray-200'} prose prose-invert">
-                        ${role === 'user' ? content : marked.parse(content)}
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-            if (role === 'assistant') div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-            scrollToBottom();
-            return id ? document.getElementById(id) : div;
-        }
+        localStorage.setItem("bb_api_key", apiKey);
+        localStorage.setItem("bb_model", modelName);
+        localStorage.setItem("bb_verified", "true");
 
-        function renderHistory() {
-            const list = document.getElementById('history-list');
-            list.innerHTML = chats.map(c => `
-                <button onclick="switchChat(${c.id})" class="w-full text-left px-4 py-3 rounded-xl text-sm truncate transition ${currentChatId === c.id ? 'sidebar-active text-white' : 'text-gray-500 hover:bg-[#1a1a1a]'}">
-                    ${c.title}
-                </button>
-            `).join('');
-        }
+        status.textContent = "✅ API Key Verified";
+        setTimeout(closeSettings, 800);
+      } catch {
+        status.textContent = "❌ Invalid API Key";
+      }
+    }
 
-        function switchChat(id) {
-            currentChatId = id;
-            const chat = chats.find(c => c.id === id);
-            document.getElementById('chat-container').innerHTML = '';
-            document.getElementById('welcome').classList.add('hidden');
-            chat.messages.forEach(m => appendUI(m.role, m.content));
-            renderHistory();
-        }
+    /* ------------------ STORAGE ------------------ */
+    function saveState() {
+      localStorage.setItem("chats", JSON.stringify(chats));
+      localStorage.setItem("currentChat", currentChatId);
+    }
+  </script>
 
-        function quickPrompt(t) { document.getElementById('user-input').value = t; handleSend(); }
-        function scrollToBottom() { const v = document.getElementById('viewport'); v.scrollTo({top: v.scrollHeight, behavior: 'smooth'}); }
-        function createNewChat() { location.reload(); }
-    </script>
 </body>
 </html>
