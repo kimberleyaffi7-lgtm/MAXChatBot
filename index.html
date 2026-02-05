@@ -9,95 +9,83 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #131314; color: #e3e3e3; }
-        .sidebar-item-active { background-color: #2e2f30; }
-        .markdown-body pre { background: #0d0d0d; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; overflow-x: auto; }
-        .markdown-body code { font-family: 'Fira Code', monospace; font-size: 0.9rem; }
-        .typing-dot { width: 4px; height: 4px; background: #9ca3af; border-radius: 50%; animation: blink 1.4s infinite both; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+        .markdown-body pre { background: #0d0d0d; padding: 1rem; border-radius: 0.8rem; border: 1px solid #333; overflow-x: auto; }
+        .sidebar-item-active { background-color: #2e2f30; border-left: 3px solid #76b900; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #3c4043; border-radius: 10px; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 
-    <aside id="sidebar" class="w-72 flex-shrink-0 bg-[#1e1f20] flex flex-col border-r border-white/5 transition-all duration-300">
+    <aside id="sidebar" class="w-72 flex-shrink-0 bg-[#1e1f20] flex flex-col border-r border-white/5 transition-all">
         <div class="p-4">
-            <button onclick="createNewChat()" class="w-full flex items-center gap-3 px-4 py-3 bg-[#2b2c2d] hover:bg-[#37393b] rounded-full transition text-sm font-medium">
-                <i data-lucide="plus" class="w-5 h-5"></i> New Chat
+            <button onclick="createNewChat()" class="w-full flex items-center gap-3 px-4 py-3 bg-[#76b900] hover:bg-[#5ea400] text-black rounded-xl transition font-bold shadow-lg">
+                <i data-lucide="plus"></i> New Chat
             </button>
         </div>
-        
-        <div id="chat-history-list" class="flex-1 overflow-y-auto px-3 space-y-1">
-            </div>
-
-        <div class="p-4 border-t border-white/5 space-y-1">
+        <div id="chat-history-list" class="flex-1 overflow-y-auto px-3 space-y-1"></div>
+        <div class="p-4 border-t border-white/5">
             <button onclick="toggleModal('settings-modal')" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-[#2e2f30] rounded-lg transition text-sm">
-                <i data-lucide="settings" class="w-4 h-4"></i> Settings
-            </button>
-            <button onclick="clearAllHistory()" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-red-900/20 text-red-400 rounded-lg transition text-sm">
-                <i data-lucide="trash-2" class="w-4 h-4"></i> Clear History
+                <i data-lucide="settings" class="w-4 h-4"></i> API Configuration
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col relative min-w-0">
-        <header class="h-16 flex items-center justify-between px-6">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/5 rounded-full"><i data-lucide="menu"></i></button>
-                <h2 id="model-badge" class="text-sm font-medium text-gray-400 bg-white/5 px-3 py-1 rounded-full">NVIDIA NIM</h2>
+        <header class="h-14 flex items-center px-6 border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span id="active-model-name" class="text-xs font-mono text-gray-400">Loading model...</span>
             </div>
         </header>
 
-        <div id="chat-viewport" class="flex-1 overflow-y-auto pb-32">
-            <div id="welcome-screen" class="max-w-2xl mx-auto mt-20 text-center space-y-6">
-                <div class="flex justify-center"><i data-lucide="cpu" class="w-12 h-12 text-green-500"></i></div>
-                <h1 class="text-4xl font-semibold tracking-tight">NVIDIA NIM Interface</h1>
-                <p class="text-gray-400">Powered by high-performance inference. Select a model in settings to begin.</p>
-                <div class="grid grid-cols-2 gap-3 text-left">
-                    <div class="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 cursor-pointer" onclick="quickPrompt('Explain quantum computing like I\'m five')">"Explain quantum computing..."</div>
-                    <div class="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 cursor-pointer" onclick="quickPrompt('Write a Python script for a simple web scraper')">"Write a Python script..."</div>
+        <div id="chat-viewport" class="flex-1 overflow-y-auto pb-32 pt-10">
+            <div id="welcome-screen" class="max-w-2xl mx-auto text-center py-20">
+                <h1 class="text-3xl font-bold mb-4">NVIDIA NIM Interface</h1>
+                <p class="text-gray-400 mb-8">High-performance inference for foundation models.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="quickPrompt('What are the advantages of NVIDIA NIM?')" class="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 text-left text-sm transition">
+                        "What are the advantages of NVIDIA NIM?"
+                    </button>
+                    <button onclick="quickPrompt('Write a clean JavaScript async fetch example')" class="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 text-left text-sm transition">
+                        "Write a clean JS async fetch..."
+                    </button>
                 </div>
             </div>
-            <div id="messages-container" class="max-w-3xl mx-auto px-4 space-y-8 pt-10"></div>
+            <div id="messages-container" class="max-w-3xl mx-auto px-4 space-y-10"></div>
         </div>
 
-        <div class="absolute bottom-0 w-full bg-gradient-to-t from-[#131314] via-[#131314] to-transparent pt-10 pb-6">
-            <div class="max-w-3xl mx-auto px-4 relative">
-                <div class="bg-[#1e1f20] rounded-3xl p-2 shadow-2xl border border-white/5 focus-within:border-white/20 transition">
-                    <textarea id="user-input" rows="1" placeholder="Message NVIDIA NIM..." 
-                        class="w-full bg-transparent border-none py-3 px-4 focus:ring-0 resize-none text-base outline-none"></textarea>
-                    <div class="flex justify-end p-1">
-                        <button id="send-btn" class="p-2 bg-white text-black rounded-full hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-white transition-all">
-                            <i data-lucide="arrow-up" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+        <div class="absolute bottom-0 w-full bg-[#131314] pb-8 pt-4">
+            <div class="max-w-3xl mx-auto px-4">
+                <div class="relative bg-[#1e1f20] border border-white/10 rounded-3xl p-2 shadow-2xl focus-within:border-[#76b900]/50 transition">
+                    <textarea id="user-input" rows="1" placeholder="Message NVIDIA NIM..." class="w-full bg-transparent border-none py-3 px-4 focus:ring-0 resize-none text-base outline-none pr-14"></textarea>
+                    <button id="send-btn" class="absolute right-3 bottom-3 p-2 bg-[#76b900] text-black rounded-2xl hover:scale-105 transition active:scale-95 disabled:opacity-20">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-[#28292a] w-full max-w-md p-8 rounded-3xl shadow-2xl border border-white/10">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold">NVIDIA Configuration</h2>
-                <button onclick="toggleModal('settings-modal')"><i data-lucide="x" class="w-5 h-5 text-gray-400"></i></button>
-            </div>
-            <div class="space-y-5">
+    <div id="settings-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-50 backdrop-blur-md">
+        <div class="bg-[#28292a] w-full max-w-lg p-8 rounded-3xl border border-white/10 shadow-2xl">
+            <h2 class="text-xl font-bold mb-2">Developer Settings</h2>
+            <p class="text-xs text-gray-400 mb-6 uppercase tracking-widest">Configure your build.nvidia.com credentials</p>
+            
+            <div class="space-y-6">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">NVIDIA API Key</label>
-                    <input type="password" id="api-key-input" placeholder="nvapi-..." class="w-full bg-[#131314] border border-white/10 rounded-xl p-3 focus:border-green-500 outline-none transition text-sm">
+                    <label class="block text-xs font-bold text-gray-500 mb-2">API KEY</label>
+                    <input type="password" id="api-key-input" placeholder="nvapi-..." class="w-full bg-[#131314] border border-white/10 rounded-xl p-3 focus:border-[#76b900] outline-none transition font-mono">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model Identifier</label>
-                    <input type="text" id="model-name-input" placeholder="meta/llama-3.1-405b-instruct" class="w-full bg-[#131314] border border-white/10 rounded-xl p-3 focus:border-green-500 outline-none transition text-sm">
-                    <p class="text-[10px] text-gray-500 mt-2">Find models at build.nvidia.com</p>
+                    <label class="block text-xs font-bold text-gray-500 mb-2">MODEL ID (From Dashboard)</label>
+                    <input type="text" id="model-name-input" placeholder="meta/llama-3.1-405b-instruct" class="w-full bg-[#131314] border border-white/10 rounded-xl p-3 focus:border-[#76b900] outline-none transition font-mono">
+                    <p class="text-[10px] text-gray-500 mt-2">Example: nvidia/llama-3.1-nemotron-70b-instruct</p>
                 </div>
             </div>
-            <div class="flex gap-3 mt-8">
-                <button onclick="saveSettings()" class="flex-1 py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition">Save Configuration</button>
-            </div>
+            
+            <button onclick="saveSettings()" class="w-full mt-8 py-4 bg-[#76b900] text-black rounded-xl font-bold hover:bg-[#5ea400] transition">Connect to NVIDIA NIM</button>
+            <button onclick="toggleModal('settings-modal')" class="w-full mt-2 py-2 text-gray-400 text-sm hover:text-white transition">Close</button>
         </div>
     </div>
 
@@ -106,102 +94,58 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script>
-        // --- State Management ---
         let chats = JSON.parse(localStorage.getItem('nv_chats') || '[]');
         let currentChatId = null;
         let config = JSON.parse(localStorage.getItem('nv_config') || '{"apiKey": "", "model": "meta/llama-3.1-405b-instruct"}');
 
-        // --- Init ---
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            loadSettingsUI();
+            loadConfigUI();
             renderHistory();
-            
-            const input = document.getElementById('user-input');
-            input.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-            });
-
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                }
-            });
-
             document.getElementById('send-btn').addEventListener('click', handleSendMessage);
+            document.getElementById('user-input').addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
         });
 
-        function toggleModal(id) {
-            document.getElementById(id).classList.toggle('hidden');
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('-ml-72');
-        }
-
-        function loadSettingsUI() {
+        function loadConfigUI() {
             document.getElementById('api-key-input').value = config.apiKey;
             document.getElementById('model-name-input').value = config.model;
-            document.getElementById('model-badge').innerText = config.model.split('/').pop();
+            document.getElementById('active-model-name').innerText = config.model;
         }
 
         function saveSettings() {
-            config.apiKey = document.getElementById('api-key-input').value;
-            config.model = document.getElementById('model-name-input').value;
+            config.apiKey = document.getElementById('api-key-input').value.trim();
+            config.model = document.getElementById('model-name-input').value.trim();
             localStorage.setItem('nv_config', JSON.stringify(config));
+            loadConfigUI();
             toggleModal('settings-modal');
-            loadSettingsUI();
         }
 
-        function createNewChat() {
-            currentChatId = Date.now();
-            const newChat = { id: currentChatId, title: "New Chat", messages: [] };
-            chats.unshift(newChat);
-            saveState();
-            renderHistory();
-            switchChat(currentChatId);
-        }
-
-        function switchChat(id) {
-            currentChatId = id;
-            const chat = chats.find(c => c.id === id);
-            document.getElementById('welcome-screen').classList.add('hidden');
-            const container = document.getElementById('messages-container');
-            container.innerHTML = '';
-            chat.messages.forEach(msg => appendMessageUI(msg.role, msg.content));
-            renderHistory();
-        }
-
-        function quickPrompt(txt) {
-            document.getElementById('user-input').value = txt;
-            handleSendMessage();
-        }
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
 
         async function handleSendMessage() {
             const input = document.getElementById('user-input');
             const btn = document.getElementById('send-btn');
-            const content = input.value.trim();
+            const text = input.value.trim();
+            if (!text || !config.apiKey) return;
 
-            if (!content || !config.apiKey) {
-                if (!config.apiKey) toggleModal('settings-modal');
-                return;
+            if (!currentChatId) {
+                currentChatId = Date.now();
+                chats.unshift({ id: currentChatId, title: text.substring(0, 30), messages: [] });
             }
 
-            if (!currentChatId) createNewChat();
-
+            const chat = chats.find(c => c.id === currentChatId);
+            chat.messages.push({ role: 'user', content: text });
+            
             input.value = '';
             input.style.height = 'auto';
-            appendMessageUI('user', content);
-            
-            const chat = chats.find(c => c.id === currentChatId);
-            chat.messages.push({ role: 'user', content });
-            if (chat.title === "New Chat") chat.title = content.substring(0, 30);
+            document.getElementById('welcome-screen').classList.add('hidden');
+            appendMessage('user', text);
 
-            // AI Response Placeholder
-            const aiMsgId = 'ai-' + Date.now();
-            const aiMsgEl = appendMessageUI('assistant', '', aiMsgId);
+            const aiId = 'ai-' + Date.now();
+            const aiBody = appendMessage('assistant', '...', aiId);
             btn.disabled = true;
 
             try {
@@ -214,110 +158,81 @@
                     body: JSON.stringify({
                         model: config.model,
                         messages: chat.messages,
-                        stream: true,
-                        max_tokens: 1024
+                        stream: true
                     })
                 });
 
-                if (!response.ok) throw new Error("API Limit reached or Invalid Key");
+                if (!response.ok) throw new Error(await response.text());
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let fullAiResponse = '';
+                let fullText = '';
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-
+                    
                     const chunk = decoder.decode(value);
                     const lines = chunk.split('\n');
-                    
                     for (const line of lines) {
                         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                            const data = JSON.parse(line.substring(6));
-                            const delta = data.choices[0].delta.content || '';
-                            fullAiResponse += delta;
-                            aiMsgEl.innerHTML = marked.parse(fullAiResponse);
-                            aiMsgEl.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
-                            scrollToBottom();
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                fullText += data.choices[0].delta.content || '';
+                                aiBody.innerHTML = marked.parse(fullText);
+                                aiBody.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+                                scrollToBottom();
+                            } catch (e) {}
                         }
                     }
                 }
-                
-                chat.messages.push({ role: 'assistant', content: fullAiResponse });
-                saveState();
+                chat.messages.push({ role: 'assistant', content: fullText });
+                localStorage.setItem('nv_chats', JSON.stringify(chats));
             } catch (err) {
-                aiMsgEl.innerHTML = `<span class="text-red-400">System Error: ${err.message}</span>`;
+                aiBody.innerHTML = `<p class="text-red-500 font-bold">Fetch Error: ${err.message}</p>`;
             } finally {
                 btn.disabled = false;
                 renderHistory();
             }
         }
 
-        function appendMessageUI(role, text, id = null) {
+        function appendMessage(role, content, id) {
             const container = document.getElementById('messages-container');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-6 ${role === 'user' ? 'justify-end' : ''} animate-in fade-in duration-500`;
-            
-            const contentHTML = id ? `<div id="${id}" class="markdown-body text-gray-200">...</div>` : `<div class="markdown-body text-gray-200">${marked.parse(text)}</div>`;
-
-            msgDiv.innerHTML = `
-                <div class="flex flex-col ${role === 'user' ? 'items-end' : 'w-full'}">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">${role === 'user' ? 'Human' : 'NVIDIA NIM'}</span>
-                    </div>
-                    <div class="${role === 'user' ? 'bg-[#2b2c2d] px-5 py-3 rounded-2xl max-w-[90%]' : 'w-full'}">
-                        ${contentHTML}
-                    </div>
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${role === 'user' ? 'items-end' : 'items-start'} group`;
+            div.innerHTML = `
+                <div class="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-tighter">${role}</div>
+                <div id="${id || ''}" class="${role === 'user' ? 'bg-[#2b2c2d] px-5 py-3 rounded-2xl max-w-[85%]' : 'w-full'} prose prose-invert">
+                    ${role === 'user' ? content : marked.parse(content)}
                 </div>
             `;
-            
-            container.appendChild(msgDiv);
-            if (!id) msgDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+            container.appendChild(div);
+            if (role === 'assistant') div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
             scrollToBottom();
-            return id ? document.getElementById(id) : msgDiv;
+            return id ? document.getElementById(id) : div;
         }
 
         function renderHistory() {
             const list = document.getElementById('chat-history-list');
-            list.innerHTML = chats.map(chat => `
-                <div class="group relative flex items-center">
-                    <button onclick="switchChat(${chat.id})" class="flex-1 text-left px-4 py-3 rounded-xl text-sm truncate transition ${currentChatId === chat.id ? 'sidebar-item-active text-white' : 'text-gray-400 hover:bg-[#2e2f30]'}">
-                        ${chat.title}
-                    </button>
-                    <button onclick="deleteChat(${chat.id})" class="absolute right-2 opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition"><i data-lucide="x" class="w-3 h-3"></i></button>
-                </div>
+            list.innerHTML = chats.map(c => `
+                <button onclick="switchChat(${c.id})" class="w-full text-left px-4 py-3 rounded-xl text-sm truncate hover:bg-white/5 ${currentChatId === c.id ? 'sidebar-item-active' : ''}">
+                    ${c.title}
+                </button>
             `).join('');
-            lucide.createIcons();
         }
 
-        function deleteChat(id) {
-            chats = chats.filter(c => c.id !== id);
-            if (currentChatId === id) {
-                currentChatId = null;
-                document.getElementById('messages-container').innerHTML = '';
-                document.getElementById('welcome-screen').classList.remove('hidden');
-            }
-            saveState();
+        function switchChat(id) {
+            currentChatId = id;
+            const chat = chats.find(c => c.id === id);
+            document.getElementById('messages-container').innerHTML = '';
+            document.getElementById('welcome-screen').classList.add('hidden');
+            chat.messages.forEach(m => appendMessage(m.role, m.content));
             renderHistory();
         }
 
-        function clearAllHistory() {
-            if (confirm("Clear all chat history?")) {
-                chats = [];
-                localStorage.removeItem('nv_chats');
-                location.reload();
-            }
-        }
-
-        function saveState() {
-            localStorage.setItem('nv_chats', JSON.stringify(chats));
-        }
-
-        function scrollToBottom() {
-            const viewport = document.getElementById('chat-viewport');
-            viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
-        }
+        function quickPrompt(t) { document.getElementById('user-input').value = t; handleSendMessage(); }
+        function scrollToBottom() { const v = document.getElementById('chat-viewport'); v.scrollTo({top: v.scrollHeight, behavior: 'smooth'}); }
+        function createNewChat() { location.reload(); }
     </script>
 </body>
 </html>
