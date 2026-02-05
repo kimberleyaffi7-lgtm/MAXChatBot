@@ -1,152 +1,122 @@
 You are a Senior Web Developer and UI Engineer.
 
-Your task is to DESIGN and BUILD a fully functional
-**Universal AI Chat Interface (Google Gemini–style clone)**
-as a **STATIC WEBSITE** using NVIDIA Build APIs.
+Your task is to DESIGN and BUILD a fully functional **Universal AI Chat Interface**
+(similar to Google Gemini / ChatGPT UI) as a **STATIC WEBSITE**.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧱 CORE ARCHITECTURE RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 - SINGLE FILE ONLY: `index.html`
 - No build tools, no bundlers, no frameworks
-- Pure HTML + Tailwind CSS (via CDN) + Vanilla JavaScript
-- ALL JavaScript must be placed at the END of `<body>`
-- App must run by simply opening `index.html` in a browser
+- Use **Tailwind CSS via CDN only**
+- Pure HTML + Tailwind + Vanilla JavaScript
+- All JavaScript must be placed **at the end of `<body>`**
+  (to avoid blank screen / DOM loading issues)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 APP PURPOSE
+🎯 APP GOAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Create a **Universal AI Chat Client** that allows users to:
-- Use **NVIDIA Build API keys**
-- Select or enter **NVIDIA-supported model IDs**
-- Chat with NVIDIA-hosted LLMs in a clean Gemini-like UI
+Create a **Universal AI Chat Client** that can talk to any OpenRouter-compatible LLM
+by letting the user:
+- Paste their OpenRouter API Key
+- Specify a custom model name (e.g. `google/gemini-pro`, `openai/gpt-4o`, etc.)
+- Chat with the model in a clean, Gemini-style UI
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🖥️ UI / UX STRUCTURE
+🖥️ UI / UX REQUIREMENTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. **Top Bar**
-   - App title
-   - Settings icon (opens modal)
+1. **Layout**
+   - Left Sidebar (Collapsible on mobile)
+   - Main Chat Area
+   - Top Bar with App Title + Settings Icon
 
 2. **Sidebar (Chat History)**
-   - New Chat button
-   - List of previous conversations
+   - List previous conversations
    - Stored in `localStorage`
-   - Active chat highlighted
-   - Click chat to reload conversation
+   - Click to load a past chat
+   - Button to start a new chat
+   - Active chat visually highlighted
 
-3. **Main Chat Area**
-   - User messages aligned RIGHT
-   - AI messages aligned LEFT
-   - Typing / loading indicator
-   - Auto-scroll to newest message
-   - Support basic markdown formatting:
-     - Code blocks
-     - Inline code
-     - Bullet lists
+3. **Chat Interface**
+   - User messages on the right
+   - AI messages on the left
+   - Typing indicator while waiting for response
+   - Auto-scroll to latest message
+   - Markdown-style formatting support (code blocks, inline code, lists)
 
-4. **Message Input**
+4. **Input Area**
    - Multi-line textarea
    - Send button
-   - Enter = send
-   - Shift + Enter = newline
-   - Disabled if API key missing
+   - Press Enter to send, Shift+Enter for newline
+   - Disabled state if API key is missing
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚙️ SETTINGS MODAL (NVIDIA)
+⚙️ SETTINGS MODAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Create a modal dialog with:
-- NVIDIA API Key input
-- Model selector OR custom model input
-  Examples:
-    - meta/llama-3.1-70b-instruct
-    - mistralai/mixtral-8x7b-instruct
-    - google/gemma-7b
+Create a modal dialog that allows the user to:
+- Enter **OpenRouter API Key**
+- Enter **Custom Model Name**
 - Save settings to `localStorage`
-- Mask API key after saving (••••••••)
-- Ability to update or clear key anytime
+- Show masked API key (••••••) after saving
+- Clear / Update key anytime
 
 Modal behavior:
-- Open via settings icon
-- Close via backdrop click or ESC key
+- Opens via Settings icon
+- Closes via overlay click or ESC key
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔌 NVIDIA BUILD API INTEGRATION
+🔌 API INTEGRATION (OpenRouter)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Use NVIDIA Build REST API via `fetch()`.
-
-General rules:
-- Use HTTPS requests only
-- No server-side code
-- No SDKs
-
-Headers:
-- Authorization: `Bearer <NVIDIA_API_KEY>`
-- Content-Type: `application/json`
-
-Request structure:
-- Endpoint must be configurable
-- Model name must come from settings
-- Messages must include full chat history context
-
-Example message format:
-- system (optional)
-- user
-- assistant
-
-Handle:
-- Loading state
-- Network failures
-- Invalid API key
-- Rate limits
-- Model errors
-- Show readable error messages in chat UI
+- Use `fetch()` to call OpenRouter API
+- Headers must include:
+  - Authorization: `Bearer <API_KEY>`
+  - Content-Type: `application/json`
+- Request body must support:
+  - model (from settings)
+  - messages array (chat history context)
+- Handle:
+  - Loading state
+  - API errors (401, 429, invalid model)
+  - Friendly error messages in chat UI
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-💾 STATE & STORAGE RULES
+💾 STATE MANAGEMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-Persist in `localStorage`:
-- NVIDIA API Key
-- Selected model
-- All chat conversations
-- Active chat ID
+Use `localStorage` for:
+- API key
+- Selected model name
+- Chat histories (multiple conversations)
+- Current active chat ID
 
 Ensure:
-- Chats survive page reload
-- Last active chat auto-loads on refresh
-- Graceful fallback if `localStorage` is unavailable
+- Chats persist after refresh
+- App restores last active chat on reload
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧠 JAVASCRIPT QUALITY RULES
+🧠 CODE QUALITY REQUIREMENTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Clean, readable, commented code
-- Modular functions:
-  - initApp()
-  - sendMessage()
-  - renderMessages()
-  - saveChat()
-  - loadChats()
-  - callNvidiaAPI()
-- NO inline JS (no onclick attributes)
-- Defensive coding for API failures
+- Clean, readable, well-commented JavaScript
+- Modular functions (sendMessage, loadChats, saveChat, etc.)
+- No inline JS handlers (`onclick`)
+- Graceful fallback if localStorage is unavailable
+- No external JS libraries
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎨 DESIGN REQUIREMENTS
+🎨 DESIGN GUIDELINES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Minimal, professional, Gemini-inspired UI
-- Light mode default
-- Rounded cards
-- Soft shadows
-- Fully responsive (desktop & mobile)
-- Tailwind utility classes only
+- Minimal, modern, Gemini-inspired UI
+- Light mode by default
+- Subtle shadows and rounded corners
+- Responsive (desktop + mobile)
+- Use Tailwind utility classes only
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📦 FINAL OUTPUT RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Output ONLY the complete `index.html`
-- No explanations
-- No markdown formatting
-- No extra text
+- No explanations, no markdown, no extra text
 - The file must be copy-paste runnable
+- Must work by simply opening in a browser
 
 Build the complete application now.
+
